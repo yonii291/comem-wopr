@@ -3,23 +3,27 @@ class HomeController < ApplicationController
   end
 
   def play
-    action = GameAction.new(params.permit(:cell, :game, :number))
+    action = GameAction.new(params.permit(:ai, :cell, :game, :number))
     unless action.valid?
       return render json: action.errors, status: 422
     end
 
     previous_state_key = "wopr:#{action.game}"
     result = $redis.pipelined do
-      $redis.watch previous_state_key
+      $redis.watch previous_state_key if action.number >= 2
       $redis.get previous_state_key
     end
 
-    current_board = result[1] || "-" * 9
+    current_board = result.last || "-" * 9
     if action.number >= 2 && current_board.blank?
       return render plain: "Game not found or has expired", status: :not_found
     end
 
     data = current_board.split ''
+    if data[action.cell] != '-'
+      return render plain: "Cell already played", status: :unprocessable_entity
+    end
+
     data[action.cell] = 'X'
     if win?(data, 'X')
       return render_result action: action, data: data, state: 'win'
@@ -52,21 +56,22 @@ class HomeController < ApplicationController
 
   private
 
-  THREE = [ 0, 1, 2 ]
+  SEQ = [ 0, 1, 2 ]
 
   def render_result action:, data:, enemy_cell: nil, state: 'playing'
-    Rails.logger.info "Game #{action.game} state: #{data.join('')}"
+    Rails.logger.info "Game #{action.game}: #{data.join('')} (#{state})"
+    $redis.multi{ $redis.del("wopr:#{action.game}") if state != 'playing' }
     render json: action.as_json({}).merge(board: data.join(''), enemyCell: enemy_cell, state: state), status: :created
   end
 
   def win?(board_data, value)
     # row win
-    THREE.any?{ |row_index| board_data[row_index * 3, 3] == [ value ] * 3 } or
+    SEQ.any?{ |row_index| board_data[row_index * 3, 3] == [ value ] * 3 } or
     # col win
-    THREE.any?{ |col_index| THREE.all?{ |row_index| board_data[row_index * 3 + col_index] == value } } or
+    SEQ.any?{ |col_index| SEQ.all?{ |row_index| board_data[row_index * 3 + col_index] == value } } or
     # top-left to bottom-right diagonal win
-    THREE.all?{ |i| board_data[i * 3 + i] == value } or
+    SEQ.all?{ |i| board_data[i * 3 + i] == value } or
     # bottom-left to top-right diagonal win
-    THREE.all?{ |i| board_data[(2 - i) * 3 + i] == value }
+    SEQ.all?{ |i| board_data[(2 - i) * 3 + i] == value }
   end
 end
