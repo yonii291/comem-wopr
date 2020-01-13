@@ -105,4 +105,6 @@
   <p><strong>You win!.</strong></p>
 {:else if state === 'lose'}
   <p><strong>You lose.</strong></p>
+{:else if state === 'draw'}
+  <p><strong>How about a nice game of chess?</strong></p>
 {/if}

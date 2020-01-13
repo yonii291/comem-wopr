@@ -8,23 +8,19 @@ class HomeController < ApplicationController
       return render json: action.errors, status: 422
     end
 
-    previous_state_key = "wopr:#{action.game}:#{action.number - 1}"
-    current_board = if action.number >= 2
-      result = $redis.multi do
-        $redis.get previous_state_key
-        $redis.del previous_state_key
-      end
-
-      result[0]
-    else
-      "-" * 9
+    previous_state_key = "wopr:#{action.game}"
+    result = $redis.pipelined do
+      $redis.watch previous_state_key
+      $redis.get previous_state_key
     end
 
-    return render plain: "Game not found or has expired", status: :not_found if current_board.blank?
+    current_board = result[1] || "-" * 9
+    if action.number >= 2 && current_board.blank?
+      return render plain: "Game not found or has expired", status: :not_found
+    end
 
     data = current_board.split ''
     data[action.cell] = 'X'
-
     if win?(data, 'X')
       return render_result action: action, data: data, state: 'win'
     end
@@ -39,8 +35,16 @@ class HomeController < ApplicationController
       return render_result action: action, data: data, enemy_cell: enemy_cell, state: 'lose'
     end
 
-    unless $redis.set("wopr:#{action.game}:#{action.number}", data.join(''), ex: 3600, nx: true)
+    result = $redis.multi do
+      $redis.set("wopr:#{action.game}", data.join(''), ex: 3600, nx: action.number == 1, xx: action.number >= 2)
+    end
+
+    if result.blank?
       return render plain: "You tried to play twice at the same time", status: :conflict
+    elsif action.number == 1 && !result[0]
+      return render plain: "You encountered a UUID collision; go buy a lottery ticket", status: 418
+    elsif action.number >= 2 && !result[0]
+      return render plain: "Game not found or has expired", status: :not_found
     end
 
     render_result action: action, data: data, enemy_cell: enemy_cell
@@ -51,6 +55,7 @@ class HomeController < ApplicationController
   THREE = [ 0, 1, 2 ]
 
   def render_result action:, data:, enemy_cell: nil, state: 'playing'
+    Rails.logger.info "Game #{action.game} state: #{data.join('')}"
     render json: action.as_json({}).merge(board: data.join(''), enemyCell: enemy_cell, state: state), status: :created
   end
 
