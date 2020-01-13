@@ -16,26 +16,35 @@ class HomeController < ApplicationController
 
     current_board = result.last || "-" * 9
     if action.number >= 2 && current_board.blank?
-      return render plain: "Game not found or has expired", status: :not_found
+      return render_error message: "Game not found or has expired", status: :not_found
     end
 
     data = current_board.split ''
     if data[action.cell] != '-'
-      return render plain: "Cell already played", status: :unprocessable_entity
+      return render_error message: "Cell already played", status: :unprocessable_entity
     end
 
     data[action.cell] = 'X'
-    if win?(data, 'X')
+    if Ai.win?(data, 'X')
       return render_result action: action, data: data, state: 'win'
     end
 
-    enemy_cell = data.dup.each_with_index.map{ |value,i| value == '-' ? i : nil }.select{ |i| i }.shuffle.first
+    ai = case action.ai
+    when 'random'
+      RandomAi.new
+    when 'wopr'
+      WoprAi.new
+    else
+      return render_error message: "Unsupported AI: #{action.ai.inspect}", status: :unprocessable_entity
+    end
+
+    enemy_cell = ai.play data, 'O'
     if enemy_cell.blank?
       return render_result action: action, data: data, state: 'draw'
     end
 
     data[enemy_cell] = 'O'
-    if win?(data, 'O')
+    if Ai.win?(data, 'O')
       return render_result action: action, data: data, enemy_cell: enemy_cell, state: 'lose'
     end
 
@@ -44,11 +53,11 @@ class HomeController < ApplicationController
     end
 
     if result.blank?
-      return render plain: "You tried to play twice at the same time", status: :conflict
+      return render_error message: "You tried to play twice at the same time", status: :conflict
     elsif action.number == 1 && !result[0]
-      return render plain: "You encountered a UUID collision; go buy a lottery ticket", status: 418
+      return render_error message: "You encountered a UUID collision; go buy a lottery ticket", status: 418
     elsif action.number >= 2 && !result[0]
-      return render plain: "Game not found or has expired", status: :not_found
+      return render_error message: "Game not found or has expired", status: :not_found
     end
 
     render_result action: action, data: data, enemy_cell: enemy_cell
@@ -56,22 +65,18 @@ class HomeController < ApplicationController
 
   private
 
-  SEQ = [ 0, 1, 2 ]
-
-  def render_result action:, data:, enemy_cell: nil, state: 'playing'
-    Rails.logger.info "Game #{action.game}: #{data.join('')} (#{state})"
-    $redis.multi{ $redis.del("wopr:#{action.game}") if state != 'playing' }
-    render json: action.as_json({}).merge(board: data.join(''), enemyCell: enemy_cell, state: state), status: :created
+  def render_error message:, status:
+    $redis.unwatch
+    return render plain: message, status: status
   end
 
-  def win?(board_data, value)
-    # row win
-    SEQ.any?{ |row_index| board_data[row_index * 3, 3] == [ value ] * 3 } or
-    # col win
-    SEQ.any?{ |col_index| SEQ.all?{ |row_index| board_data[row_index * 3 + col_index] == value } } or
-    # top-left to bottom-right diagonal win
-    SEQ.all?{ |i| board_data[i * 3 + i] == value } or
-    # bottom-left to top-right diagonal win
-    SEQ.all?{ |i| board_data[(2 - i) * 3 + i] == value }
+  def render_result action:, data:, enemy_cell: nil, state: 'playing'
+    $redis.pipelined do
+      $redis.del("wopr:#{action.game}") if state != 'playing'
+      $redis.unwatch
+    end
+
+    Rails.logger.info "Game #{action.game}: #{data.join('')} (#{state})"
+    render json: action.as_json({}).merge(board: data.join(''), enemyCell: enemy_cell, state: state), status: :created
   end
 end
