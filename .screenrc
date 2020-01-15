@@ -1,0 +1,8 @@
+source $HOME/.screenrc
+
+screen -t shell 0
+screen -t back 1
+stuff "ruby app.rb\012"
+screen -t front 2
+stuff "npm run dev\012"
+select shell

@@ -1,17 +1,36 @@
 {
   "name": "wopr",
+  "version": "1.0.0",
+  "description": "Play tic-tac-toe against the WOPR.",
   "private": true,
-  "dependencies": {
-    "@rails/actioncable": "^6.0.0",
-    "@rails/activestorage": "^6.0.0",
-    "@rails/ujs": "^6.0.0",
-    "@rails/webpacker": "4.2.2",
-    "svelte": "^3.16.7",
-    "svelte-loader": "^2.13.6",
-    "turbolinks": "^5.2.0"
+  "scripts": {
+    "build": "npm run clean && npm run webpack",
+    "clean": "rimraf public",
+    "dev": "webpack --config webpack.js --watch",
+    "webpack": "cross-env NODE_ENV=production webpack --config webpack.js"
   },
-  "version": "0.1.0",
-  "devDependencies": {
-    "webpack-dev-server": "^3.10.1"
+  "dependencies": {
+    "cross-env": "^6.0.3",
+    "css-loader": "^3.4.2",
+    "rimraf": "^3.0.0",
+    "style-loader": "^1.1.2",
+    "svelte": "^3.17.1",
+    "svelte-loader": "^2.13.6",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MediaComem/comem-wopr.git"
+  },
+  "author": "Simon Oulevay <npm@alphahydrae.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MediaComem/comem-wopr/issues"
+  },
+  "homepage": "https://github.com/MediaComem/comem-wopr#readme",
+  "engines": {
+    "node": "12.x"
   }
 }
