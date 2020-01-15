@@ -1,18 +1,27 @@
-class Wopr::Ai
-  DIAG = [ 0, -2 ]
-  SEQ = [ 0, 1, 2 ]
+class WOPR::AI
+  def self.win? board, cell
+    player = board[cell]
+    row_index = cell / 3
+    col_index = cell % 3
 
-  def self.win?(board, player)
-    # row win
-    SEQ.any?{ |row_index| board[row_index * 3, 3] == [ player ] * 3 } or
-    # col win
-    SEQ.any?{ |col_index| SEQ.all?{ |row_index| board[row_index * 3 + col_index] == player } } or
-    # top-left to bottom-right diagonal win
-    SEQ.all?{ |i| board[i * 3 + i] == player } or
-    # bottom-left to top-right diagonal win
-    SEQ.all?{ |i| board[(2 - i) * 3 + i] == player }
+    # Did the player fill the row?
+    board[row_index * 3, 3].all?{ |p| p == player } ||
+    # Or did the player fill the column?
+    SEQ.all?{ |current_row_index| board[current_row_index * 3 + col_index] == player } ||
+    # Or did the player fill one of the diagonals?
+    cell.even? && DIAGONALS.any?{ |diagonal| diagonal.all?{ |c| board[c] == player } }
   end
+
+  private
+
+  DIAGONALS = [
+    # Top-left to bottom-right diagonal.
+    [ 0, 4, 8 ],
+    # Bottom-left to top-right diagonal.
+    [ 6, 4, 2 ]
+  ]
+
+  SEQ = 0..2
 end
 
-require_relative './ai/random'
-require_relative './ai/wopr'
+Dir[File.join File.dirname(__FILE__), File.basename(__FILE__, '.*'), '*.rb'].each{ |lib| require lib }

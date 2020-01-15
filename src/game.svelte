@@ -1,14 +1,9 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
-
   import { currentGame } from './stores';
   import { delay, uuidv4 } from './utils';
 
-	const dispatch = createEventDispatcher();
-
   let playing = false;
   let thinking = false;
-  let state = 'playing';
 
   $: rows = Array(3).fill().map((_, i) => $currentGame.board.slice(i * 3, i * 3 + 3));
 
@@ -38,19 +33,14 @@
       }
 
       const body = await res.json();
-      currentGame.play(cell, 'X');
+      currentGame.play(cell, 'X', body.state !== 'playing' ? body.state : undefined);
 
       playing = false;
       if (body.enemyCell !== undefined) {
         thinking = true;
         await delay(Math.random() * 1000);
-        currentGame.play(body.enemyCell, 'O');
+        currentGame.play(body.enemyCell, 'O', body.state);
         thinking = false;
-      }
-
-      state = body.state;
-      if (state !== 'playing') {
-        dispatch('finished', {});
       }
     } catch (err) {
       playing = false;
@@ -103,12 +93,12 @@
   <p>Thinking...</p>
 {:else if playing}
   <p>Submitting your move...</p>
-{:else if state === 'playing'}
+{:else if $currentGame.state === 'playing'}
   <p>Your turn.</p>
-{:else if state === 'win'}
+{:else if $currentGame.state === 'win'}
   <p><strong>You win!.</strong></p>
-{:else if state === 'lose'}
+{:else if $currentGame.state === 'lose'}
   <p><strong>You lose.</strong></p>
-{:else if state === 'draw'}
+{:else if $currentGame.state === 'draw'}
   <p><strong>How about a nice game of chess?</strong></p>
 {/if}

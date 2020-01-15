@@ -10,17 +10,15 @@ function createGameStore() {
 		start: ai => set({
       ai,
       board: Array(9).fill(null),
-      finished: false,
-      id: uuidv4()
+      id: uuidv4(),
+      state: 'playing'
     }),
 
-    play: (cell, value) => update(g => {
+    play: (cell, value, newState) => update(g => {
       const board = g.board.slice();
       board[cell] = value;
-      return { ...g, board };
-    }),
-
-		finish: () => update(g => ({ ...g, finished: true }))
+      return { ...g, board, state: newState || g.state };
+    })
 	};
 }
 
