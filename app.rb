@@ -2,35 +2,34 @@ require 'active_support/hash_with_indifferent_access'
 require 'logger'
 require 'sinatra'
 require 'sinatra/json'
-require_relative './src/backend/config'
-require_relative './src/backend/game_action'
-require_relative './src/backend/random_ai'
-require_relative './src/backend/wopr_ai'
 
-require 'sinatra/reloader' if CONFIG.env === 'development'
+require_relative './lib/wopr'
+
+require 'sinatra/reloader' if Config.development?
+
+Config.ensure_database_connection!
 
 get '/' do
-  slim :index, locals: { bundle: CONFIG.cached_javascript_bundle || get_javascript_bundle }
+  slim :index, locals: { bundle: Config.javascript_bundle }
 end
 
 get '/api' do
-  pkg = JSON.parse File.read(File.join(CONFIG.root_dir, 'package.json'))
-  [ 200, {}, JSON.dump({ 'version' => pkg['version'] }) ]
+  json version: Config.version
 end
 
 post '/api/actions' do
   body = request.body.read
-  action = Wopr::GameAction.new(ActiveSupport::HashWithIndifferentAccess.new(JSON.parse(body)))
+  action = Wopr::Action.new(ActiveSupport::HashWithIndifferentAccess.new(JSON.parse(body)))
   unless action.valid?
     return render_error message: "Action is invalid: #{action.errors.full_messages.join ', '}", status: 422
   end
 
   action = action.normalize
 
-  previous_state_key = redis_key action.game
-  result = $redis.pipelined do
-    $redis.watch previous_state_key if action.number >= 2
-    $redis.get previous_state_key
+  previous_state_key = Config.redis_key action.game
+  result = Config.redis.pipelined do
+    Config.redis.watch previous_state_key if action.number >= 2
+    Config.redis.get previous_state_key
   end
 
   current_board = result.last || "-" * 9
@@ -50,9 +49,9 @@ post '/api/actions' do
 
   ai = case action.ai
   when 'random'
-    Wopr::RandomAi.new
+    Wopr::Ai::Random.new
   when 'wopr'
-    Wopr::WoprAi.new
+    Wopr::Ai::Wopr.new
   else
     return render_error message: "Unsupported AI: #{action.ai.inspect}", status: 422
   end
@@ -67,8 +66,8 @@ post '/api/actions' do
     return render_result action: action, data: data, enemy_cell: enemy_cell, state: 'lose'
   end
 
-  result = $redis.multi do
-    $redis.set(redis_key(action.game), data.join(''), ex: 3600, nx: action.number == 1, xx: action.number >= 2)
+  result = Config.redis.multi do
+    Config.redis.set(Config.redis_key(action.game), data.join(''), ex: 3600, nx: action.number == 1, xx: action.number >= 2)
   end
 
   if result.blank?
@@ -83,17 +82,17 @@ post '/api/actions' do
 end
 
 def render_error message:, status:
-  $redis.unwatch
+  Config.redis.unwatch
   [ status, { 'Content-Type' => 'plain/text' }, message ]
 end
 
 def render_result action:, data:, enemy_cell: nil, state: 'playing'
-  $redis.pipelined do
-    $redis.del(redis_key(action.game)) if state != 'playing'
-    $redis.unwatch
+  Config.redis.pipelined do
+    Config.redis.del(Config.redis_key(action.game)) if state != 'playing'
+    Config.redis.unwatch
   end
 
-  CONFIG.logger.info "Game #{action.game}: #{data.join('')} (#{state})"
+  Config.logger.info "Game #{action.game}: #{data.join('')} (#{state})"
   body = action.as_json().merge({ 'enemyCell' => enemy_cell, 'state' => state })
   [ 201, { 'Content-Type' => 'application/json' }, JSON.dump(body) ]
 end

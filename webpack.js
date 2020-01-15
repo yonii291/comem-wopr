@@ -5,7 +5,7 @@ const prod = mode === 'production';
 
 module.exports = {
 	entry: {
-		bundle: [ './src/frontend/main.js' ]
+		bundle: [ './src/main.js' ]
 	},
 	resolve: {
 		alias: {
