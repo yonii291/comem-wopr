@@ -7,12 +7,14 @@
     "build": "npm run clean && npm run webpack",
     "clean": "rimraf public",
     "dev": "npm run clean && npm run webpack:watch",
+    "doctoc": "doctoc --notitle --github README.md",
     "webpack": "cross-env NODE_ENV=production webpack --config webpack.js",
     "webpack:watch": "webpack --config webpack.js --watch"
   },
   "dependencies": {
     "cross-env": "^6.0.3",
     "css-loader": "^3.4.2",
+    "doctoc": "^1.4.0",
     "rimraf": "^3.0.0",
     "style-loader": "^1.1.2",
     "svelte": "^3.17.1",
