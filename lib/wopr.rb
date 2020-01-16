@@ -42,6 +42,13 @@ module WOPR
     @logger ||= Logger.new STDOUT
   end
 
+  def self.port
+    return @port if @port
+    p = ENV.fetch('WOPR_PORT', ENV.fetch('PORT', 4567)).to_i
+    raise "$WOPR_PORT or $PORT must be a valid port number between 1 and 65,535" unless p >= 1 && p <= 65535
+    @port = p
+  end
+
   def self.redis
     @redis ||= Redis.new logger: self.logger, url: self.redis_url
   end
@@ -55,7 +62,7 @@ module WOPR
   end
 
   def self.redis_url
-    @redis_url ||= ENV.fetch 'WOPR_REDIS_URL', 'redis://localhost:6379/0'
+    @redis_url ||= ENV.fetch 'WOPR_REDIS_URL', ENV.fetch('REDIS_URL', 'redis://localhost:6379/0')
   end
 
   def self.root_dir
