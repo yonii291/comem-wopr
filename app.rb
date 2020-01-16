@@ -7,6 +7,7 @@ require_relative './lib/wopr'
 require 'sinatra/reloader' if WOPR.development?
 
 WOPR.ensure_database_connection!
+WOPR.logger.info Paint["WOPR is running in #{WOPR.env} mode", :green]
 
 get '/' do
   slim :index, locals: { bundle: WOPR.javascript_bundle }
