@@ -66,6 +66,9 @@ cd /path/to/application
 WOPR_ENV=production bundle exec ruby app.rb
 ```
 
+You should point your Apache or nginx web server to the application's `public`
+directory, which contains its static files.
+
 
 
 ## Configuration
