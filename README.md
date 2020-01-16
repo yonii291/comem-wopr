@@ -45,6 +45,15 @@ npm ci
 npm run build
 ```
 
+### Updating
+
+You should re-build the web assets every time the frontend source code is
+updated:
+
+```bash
+npm run build
+```
+
 
 
 ## Usage
