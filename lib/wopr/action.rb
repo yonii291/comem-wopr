@@ -7,7 +7,7 @@ class WOPR::Action
 
   validates :ai, presence: true, inclusion: { in: %w(random wopr) }
   validates :cell, presence: true, numericality: { integer: true, greater_than_or_equal_to: 0, smaller_than_or_equal_to: 8 }
-  validates :game, presence: true, format: { with: /\A[a-z0-9-_=\/]+\z/i }
+  validates :game, presence: true, format: { with: /\A[a-z0-9\-_=\/]+\z/i }
   validates :number, presence: true, numericality: { integer: true, greater_than_or_equal_to: 1, smaller_than_or_equal_to: 9 }
 
   def initialize params
