@@ -9,6 +9,7 @@ require 'sinatra/reloader' if WOPR.development?
 WOPR.ensure_database_connection!
 WOPR.logger.info Paint["WOPR is running in #{WOPR.env} mode", :green]
 
+set :bind, '0.0.0.0'
 set :port, WOPR.port
 
 get '/' do
