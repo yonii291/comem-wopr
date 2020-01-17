@@ -54,13 +54,15 @@
   table {
     border-collapse: collapse;
     cursor: pointer;
+    font-family: "Lucida Console", Monaco, monospace;
   }
   table td {
     border: 1px solid black;
-    width: 1em;
-    height: 1em;
     text-align: center;
     vertical-align: middle;
+    font-size: 4em;
+    width: 1em;
+    height: 1em;
   }
   table td:hover {
     background-color: #eeeeee;
@@ -77,28 +79,38 @@
   table tr td:last-child {
     border-right: 0;
   }
+  .not-played span {
+    visibility: hidden;
+  }
+  strong {
+    font-weight: bold;
+  }
 </style>
 
-<table>
-  {#each rows as row, rowIndex}
-    <tr>
-      {#each row as cell, columnIndex}
-        <td on:click={play(rowIndex * 3 + columnIndex)}>{cell || '•'}</td>
-      {/each}
-    </tr>
-  {/each}
-</table>
+<div class='d-flex justify-content-center'>
+  <table class='mt-5'>
+    {#each rows as row, rowIndex}
+      <tr>
+        {#each row as cell, columnIndex}
+          <td class={cell ? 'played' : 'not-played'} on:click={play(rowIndex * 3 + columnIndex)}><span>{cell || '•'}</span></td>
+        {/each}
+      </tr>
+    {/each}
+  </table>
+</div>
 
-{#if thinking}
-  <p>Thinking...</p>
-{:else if playing}
-  <p>Submitting your move...</p>
-{:else if $currentGame.state === 'playing'}
-  <p>Your turn.</p>
-{:else if $currentGame.state === 'win'}
-  <p><strong>You win!.</strong></p>
-{:else if $currentGame.state === 'lose'}
-  <p><strong>You lose.</strong></p>
-{:else if $currentGame.state === 'draw'}
-  <p><strong>How about a nice game of chess?</strong></p>
-{/if}
+<p class='lead text-center mt-4'>
+  {#if thinking}
+    Thinking...
+  {:else if playing}
+    Submitting your move...
+  {:else if $currentGame.state === 'playing'}
+    Your turn.
+  {:else if $currentGame.state === 'win'}
+    <strong>You win!</strong>
+  {:else if $currentGame.state === 'lose'}
+    <strong>You lose.</strong>
+  {:else if $currentGame.state === 'draw'}
+    How about a nice game of chess?
+  {/if}
+</p>
