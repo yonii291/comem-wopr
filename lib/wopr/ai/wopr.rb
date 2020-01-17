@@ -19,7 +19,7 @@ class WOPR::AI::WOPR
       return scores[winner] * scores[player]
     end
 
-    cells_to_play = []
+    cell_to_play = nil
     score = -2
 
     9.times do |current_cell|
@@ -40,18 +40,16 @@ class WOPR::AI::WOPR
       cell_score = -minimax(new_board, get_opponent(player), scores, depth: depth + 1, last_cell: current_cell)
       if cell_score > score
         score = cell_score
-        cells_to_play = [ current_cell ]
-      elsif cell_score == score
-        cells_to_play << current_cell
+        cell_to_play = current_cell
       end
     end
 
     # Return one of the best cells to play (or nil if it's a draw) when done
     # with the recursive algorithm.
-    return cells_to_play.shuffle.first if depth == 0
+    return cell_to_play if depth == 0
 
     # Return the minimax score or 0 if there are no remaining cells (i.e. draw).
-    cells_to_play.empty? ? 0 : score
+    cell_to_play.nil? ? 0 : score
   end
 
   def self.get_opponent(player)
