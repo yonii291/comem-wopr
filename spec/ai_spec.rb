@@ -6,16 +6,16 @@ RSpec.describe "AI" do
     9.times do |cell|
       initial_board = empty_board.dup
       initial_board[cell] = 'X'
-      result = play_until_completion initial_board, 'O', cell, [ cell ]
-      expect(result).to equal(0)
+      wins_by_x = play_until_completion initial_board, 'O', cell, [ cell ]
+      expect(wins_by_x).to be_empty
     end
   end
 
   private
 
-  def play_until_completion board, player, last_cell, cells_played = []
-    return board[last_cell] == 'X' ? 1 : 0 if WOPR::AI.win?(board, last_cell)
-    return 0 if board.all?{ |cell| cell != '-' }
+  def play_until_completion board, player, last_cell, cells_played, wins_by_x = []
+    return board[last_cell] == 'X' ? wins_by_x + [ cells_played ] : wins_by_x if WOPR::AI.win?(board, last_cell)
+    return wins_by_x if board.all?{ |cell| cell != '-' }
 
     if player == 'X'
       possible_cells = board.each.with_index.select{ |cell,i| cell == '-' }.map{ |cell,i| i }
