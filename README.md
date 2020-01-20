@@ -78,6 +78,7 @@ Your deployment workflow should re-build the web assets every time the
 frontend's source code is updated:
 
 ```bash
+cd /path/to/application
 npm run build
 ```
 
