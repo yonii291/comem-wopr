@@ -12,6 +12,7 @@ Play tic-tac-toe against the WOPR.
 - [Usage](#usage)
   - [Run in development mode](#run-in-development-mode)
   - [Run in production mode](#run-in-production-mode)
+- [Updating](#updating)
 - [Configuration](#configuration)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
