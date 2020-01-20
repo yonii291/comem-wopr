@@ -45,15 +45,6 @@ npm ci
 npm run build
 ```
 
-### Updating
-
-You should re-build the web assets every time the frontend source code is
-updated:
-
-```bash
-npm run build
-```
-
 
 
 ## Usage
@@ -77,6 +68,17 @@ WOPR_ENV=production bundle exec ruby app.rb
 
 You should point your Apache or nginx web server to the application's `public`
 directory, which contains its static files.
+
+
+
+## Updating
+
+Your deployment workflow should re-build the web assets every time the
+frontend's source code is updated:
+
+```bash
+npm run build
+```
 
 
 
