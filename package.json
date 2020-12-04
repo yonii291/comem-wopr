@@ -1,6 +1,6 @@
 {
   "name": "wopr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Play tic-tac-toe against the WOPR.",
   "private": true,
   "scripts": {
