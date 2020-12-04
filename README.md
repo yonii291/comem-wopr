@@ -23,7 +23,7 @@ Play tic-tac-toe against the WOPR.
 
 ### Requirements
 
-* [Ruby](https://www.ruby-lang.org) 2.5.1
+* [Ruby](https://www.ruby-lang.org) 2.7.0
 * [Node.js](https://nodejs.org) 12.x
 * [Redis](https://redis.io) 4+
 
@@ -39,7 +39,8 @@ cd comem-wopr
 gem install bundler -v 2.1.4
 
 # Install Ruby gems & npm packages.
-bundle install --path vendor/bundle
+bundle config set path 'vendor/bundle'
+bundle install
 npm ci
 
 # Build the web assets.
