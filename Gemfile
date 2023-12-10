@@ -16,6 +16,9 @@ gem 'activesupport', '~> 7.1'
 # Colorized command line output
 gem 'paint', '~> 2.0'
 
+# Application server
+gem 'puma', '~> 6.4'
+
 group :test do
   # Automated tests
   gem 'rspec', '~> 3.9'
