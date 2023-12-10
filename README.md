@@ -23,8 +23,8 @@ Play tic-tac-toe against the WOPR.
 
 ### Requirements
 
-* [Ruby](https://www.ruby-lang.org) 2.7.0
-* [Node.js](https://nodejs.org) 12+
+* [Ruby](https://www.ruby-lang.org) 2.7.x or 3.x
+* [Node.js](https://nodejs.org) 20.x
 * [Redis](https://redis.io) 4+
 
 ### Initial setup
@@ -33,10 +33,6 @@ Play tic-tac-toe against the WOPR.
 # Clone the repository
 git clone https://github.com/MediaComem/comem-wopr.git
 cd comem-wopr
-
-# Install the correct version of bundler to install Ruby gems
-# (you might need sudo if you're using the system's Ruby installation).
-gem install bundler -v 2.1.4
 
 # Install Ruby gems & npm packages.
 bundle config set path 'vendor/bundle'
