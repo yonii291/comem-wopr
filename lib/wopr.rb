@@ -50,7 +50,7 @@ module WOPR
   end
 
   def self.redis
-    @redis ||= Redis.new logger: self.logger, url: self.redis_url
+    @redis ||= Redis.new url: self.redis_url
   end
 
   def self.redis_key key

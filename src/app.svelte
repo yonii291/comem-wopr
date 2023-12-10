@@ -1,7 +1,6 @@
 <script>
   import Game from './game.svelte';
   import { currentGame } from './stores';
-  import { uuidv4 } from './utils';
 
   const play = ai => () => currentGame.start(ai);
 </script>
@@ -19,7 +18,7 @@
   </div>
 </header>
 
-<main role="main">
+<main>
   {#if !$currentGame}
     <section class="jumbotron text-center">
       <div class="container">

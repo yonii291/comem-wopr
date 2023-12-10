@@ -1,6 +1,6 @@
 <script>
   import { currentGame } from './stores';
-  import { delay, uuidv4 } from './utils';
+  import { delay } from './utils';
 
   let playing = false;
   let thinking = false;
