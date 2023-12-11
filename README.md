@@ -34,8 +34,10 @@ Play tic-tac-toe against the WOPR.
 git clone https://github.com/MediaComem/comem-wopr.git
 cd comem-wopr
 
-# Install Ruby gems & npm packages.
+# Configure Bundler.
 bundle config set path 'vendor/bundle'
+
+# Install dependencies (Ruby gems & npm packages).
 bundle install
 npm ci
 
@@ -71,11 +73,13 @@ directory, which contains its static files.
 
 ## Updating
 
-Your deployment workflow should re-build the web assets every time the
-frontend's source code is updated:
+Your deployment workflow should install new dependencies and re-build the web
+assets every time the frontend's source code is updated:
 
 ```bash
 cd /path/to/application
+bundle install
+npm install
 npm run build
 ```
 
