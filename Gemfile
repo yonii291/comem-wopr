@@ -9,7 +9,7 @@ gem 'sinatra-contrib', '~> 3.1'
 gem 'slim', '~> 5.2'
 
 # Database
-gem 'redis', '~> 4.0'
+gem 'redis', '~> 5.0'
 gem 'activemodel', '~> 7.1'
 gem 'activesupport', '~> 7.1'
 

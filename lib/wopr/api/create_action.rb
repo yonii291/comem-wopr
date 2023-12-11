@@ -10,13 +10,11 @@ module WOPR::API
     # Get the previous game and watch the key for optimistic locking (see
     # https://redis.io/topics/transactions#optimistic-locking-using-check-and-set).
     previous_state_key = WOPR.redis_key action.game
-    result = WOPR.redis.pipelined do
-      WOPR.redis.watch previous_state_key if action.number >= 2
-      WOPR.redis.get previous_state_key
-    end
+    WOPR.redis.watch(previous_state_key) if action.number >= 2
+    result = WOPR.redis.get(previous_state_key)
 
     # Get or initialize the board.
-    current_board = result.last || "-" * 9
+    current_board = result || "-" * 9
     return render_action_error message: "Game not found or has expired", status: 404 if action.number >= 2 && current_board.blank?
 
     # Split the board into its 9 cells and check if the action's cell is free.
@@ -52,8 +50,8 @@ module WOPR::API
     #
     # For an existing game, the XX option is given to the SET command so that
     # the game is only updated if it still exists.
-    result = WOPR.redis.multi do
-      WOPR.redis.set(WOPR.redis_key(action.game), data.join(''), ex: 3600, nx: action.number == 1, xx: action.number >= 2)
+    result = WOPR.redis.multi do |multi|
+      multi.set(WOPR.redis_key(action.game), data.join(''), ex: 3600, nx: action.number == 1, xx: action.number >= 2)
     end
 
     # Return the appropriate error message if the previous operation failed.
@@ -78,12 +76,12 @@ module WOPR::API
   end
 
   def self.render_created_action action:, data:, enemy_cell: nil, state: 'playing'
-    WOPR.redis.pipelined do
+    WOPR.redis.pipelined do |pipeline|
       # Delete the game when done.
-      WOPR.redis.del(WOPR.redis_key(action.game)) if state != 'playing'
+      pipeline.del(WOPR.redis_key(action.game)) if state != 'playing'
       # Unwatch the game state key to cancel the optimistic lock (in case it is
       # still ongoing).
-      WOPR.redis.unwatch
+      pipeline.unwatch
     end
 
     WOPR.logger.info "Game #{action.game}: #{data.join('')} (#{state})"
